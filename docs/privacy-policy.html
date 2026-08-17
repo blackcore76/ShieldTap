@@ -31,12 +31,12 @@
 <body>
     <div class="container">
         <div class="lang-toggle">
-            <button class="active" onclick="showLang('en')">English</button>
-            <button onclick="showLang('ko')">한국어</button>
+            <button onclick="showLang('ko')" class="active">한국어</button>
+            <button onclick="showLang('en')">English</button>
         </div>
 
         <!-- English -->
-        <div class="en">
+        <div class="en" style="display:none">
             <h1>ShieldTap — Privacy Policy</h1>
             <p class="subtitle">Last updated: August 17, 2026</p>
 
@@ -87,7 +87,7 @@
         </div>
 
         <!-- Korean -->
-        <div class="ko">
+        <div class="ko" style="display:block">
             <h1>ShieldTap — 개인정보처리방침</h1>
             <p class="subtitle">최종 수정일: 2026년 8월 17일</p>
 
