@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ShieldTap</string>
+    <string name="app_subtitle">Prevents unintended screen touches</string>
+    <string name="accessibility_service_description">Blocks screen touches during calls to prevent accidental video call button presses</string>
+
+    <!-- Main Screen -->
+    <string name="usage_guide_button">Usage Guide ></string>
+    <string name="usage_guide_title">Usage Guide</string>
+    <string name="usage_guide_content">ShieldTap prevents unintended screen touches during phone calls.\n\n■ Accessibility Service\nRequired to display the touch-blocking overlay on screen.\nDoes not read or collect any screen content.\n\n■ Call Detection (Plus)\nDetects call connection and disconnection to automatically enable and disable the blind.\nDoes not access phone numbers or call content.\n\n■ Battery Optimization Exemption\nPrevents some manufacturers (Samsung, etc.) from force-stopping the background service.\n\n■ Privacy\nShieldTap does not collect, store, or transmit any personal information.\nNo internet permission is used.</string>
+    <string name="usage_guide_close">Close</string>
+
+    <!-- Mode Selection -->
+    <string name="plan_basic_title">Basic</string>
+    <string name="plan_basic_desc">Manual on/off via side tab</string>
+    <string name="plan_plus_title">Plus</string>
+    <string name="plan_plus_desc">Auto-activate during calls</string>
+    <string name="mode_select">Select</string>
+    <string name="mode_in_use">In Use</string>
+
+    <!-- Permissions -->
+    <string name="perm_title">Permission Status</string>
+    <string name="perm_accessibility">Accessibility Service</string>
+    <string name="perm_phone_state">Call Detection</string>
+    <string name="perm_battery">Battery Exemption</string>
+    <string name="perm_active">Active</string>
+    <string name="perm_inactive">Inactive — Set up</string>
+    <string name="perm_granted">Granted</string>
+    <string name="perm_not_granted">Not granted — Grant</string>
+    <string name="perm_not_needed">Not needed</string>
+
+    <string name="btn_on">Turn On ShieldTap</string>
+    <string name="btn_off">Close</string>
+    <string name="version_text">ShieldTap v1.0.0-3</string>
+
+    <!-- Side Tab -->
+    <string name="side_tab_activate">Start</string>
+
+    <!-- Blind Overlay -->
+    <string name="blind_active_title">Call Blind Active</string>
+    <string name="blind_active_hint">Press button below to dismiss</string>
+    <string name="blind_dismiss_button">Dismiss Blind</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_name">Call Blind</string>
+    <string name="notification_channel_desc">Call screen blind notification</string>
+    <string name="notification_title">Call Blind Active</string>
+    <string name="notification_text">Screen touches are blocked</string>
+    <string name="notification_dismiss">Dismiss Blind</string>
+</resources>
