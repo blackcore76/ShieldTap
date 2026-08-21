@@ -26,15 +26,15 @@ ShieldTap은 통화 중 터치 차단 오버레이를 씌워 이런 오터치를
 |---|---|---|
 | 사이드 탭 수동 켜기/끄기 | O | O |
 | 통화 시 자동 활성화 | — | O |
-| 가격 | 무료 | 무료 (Play Store) |
+| 가격 | 무료 | ₩2,900 (인앱 구매) |
 
 ## 다운로드
 
-- **Google Play Store** (권장): *준비 중*
-- **GitHub Releases**: [APK 다운로드](https://github.com/blackcore76/ShieldTap/releases)
+**[▶ Google Play Store에서 설치](https://play.google.com/store/apps/details?id=com.blackcore.shieldtap)**
 
-> **참고**: GitHub 릴리즈는 기본(Basic) 기능만 포함됩니다.
-> 플러스(Plus) 기능(통화 시 자동 활성화)은 Google Play Store에서 설치해 주세요.
+*(현재 비공개 테스트 중 — 정식 출시 준비 중입니다)*
+
+> **참고**: 플러스(Plus) 기능은 Google Play 결제로 제공되므로 반드시 Play Store에서 설치해야 정상 작동합니다. GitHub에서 APK를 직접 받아 설치하면 결제가 동작하지 않습니다.
 
 ## 권한
 
@@ -67,15 +67,15 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 |---|---|---|
 | Side tab manual on/off | O | O |
 | Auto-activate during calls | — | O |
-| Price | Free | Free (Play Store) |
+| Price | Free | ₩2,900 (in-app) |
 
 ## Download
 
-- **Google Play Store** (recommended): *Coming soon*
-- **GitHub Releases**: [Download APK](https://github.com/blackcore76/ShieldTap/releases)
+**[▶ Install from Google Play Store](https://play.google.com/store/apps/details?id=com.blackcore.shieldtap)**
 
-> **Note**: GitHub releases include Basic features only.
-> For Plus features (auto-activate during calls), please install from the Google Play Store.
+*(Currently in closed testing — production release coming soon)*
+
+> **Note**: Plus features are delivered via Google Play billing, so the app must be installed from the Play Store to work. A sideloaded GitHub APK cannot process the purchase.
 
 ## Permissions
 
