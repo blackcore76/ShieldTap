@@ -46,7 +46,7 @@ ShieldTap은 통화 중 터치 차단 오버레이를 씌워 이런 오터치를
 
 ## 개인정보
 
-ShieldTap은 어떠한 개인정보도 수집, 저장, 전송하지 않습니다. 인터넷 권한을 사용하지 않습니다.
+ShieldTap은 어떠한 개인정보도 수집, 저장, 전송하지 않습니다. 인터넷 연결은 Google Play 인앱 구매 확인에만 사용됩니다.
 
 [개인정보처리방침](https://blackcore76.github.io/ShieldTap/privacy-policy.html)
 
@@ -87,7 +87,7 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 
 ## Privacy
 
-ShieldTap does not collect, store, or transmit any personal information. No internet permission is used.
+ShieldTap does not collect, store, or transmit any personal information. Internet is used only to verify Google Play in-app purchases.
 
 [Privacy Policy](https://blackcore76.github.io/ShieldTap/privacy-policy.html)
 
