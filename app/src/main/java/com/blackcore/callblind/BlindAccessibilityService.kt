@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -19,10 +20,15 @@ import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import kotlin.math.abs
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
@@ -37,6 +43,22 @@ class BlindAccessibilityService : AccessibilityService() {
     private var pulseAnimator: ValueAnimator? = null
     private val handler = Handler(Looper.getMainLooper())
     private val collapseRunnable = Runnable { collapseSideTab() }
+
+    private var isDraggingTab = false
+    private var sideTabOnLeft = false
+    private var dragStartX = 0
+    private var dragStartY = 0
+    private var dragTouchX = 0f
+    private var dragTouchY = 0f
+    private var longPressRunnable: Runnable? = null
+    private val touchSlop by lazy { ViewConfiguration.get(this).scaledTouchSlop }
+
+    private var isDraggingBadge = false
+    private var badgeInitialTX = 0f
+    private var badgeInitialTY = 0f
+    private var badgeTouchX = 0f
+    private var badgeTouchY = 0f
+    private var badgeLongPress: Runnable? = null
 
     private var telephonyManager: TelephonyManager? = null
     private var phoneStateListener: PhoneStateListener? = null
@@ -53,7 +75,8 @@ class BlindAccessibilityService : AccessibilityService() {
 
     private fun isAutoMode(): Boolean {
         val prefs = getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
-        return prefs.getString("mode", "basic") == "plus"
+        return prefs.getString("mode", "basic") == "plus" &&
+            prefs.getBoolean("plus_purchased", false)
     }
 
     fun onModeChanged() {
@@ -131,7 +154,7 @@ class BlindAccessibilityService : AccessibilityService() {
                 if (!isBlindActive) {
                     wasAutoActivated = true
                     hideSideTab()
-                    showBlind()
+                    showBlind(forceCallStyle = true)
                 }
             }
             TelephonyManager.CALL_STATE_IDLE -> {
@@ -157,26 +180,24 @@ class BlindAccessibilityService : AccessibilityService() {
 
     // ── Side Tab ──
 
+    private fun hGravity() = if (sideTabOnLeft) Gravity.START else Gravity.END
+
     private fun showSideTab() {
         if (sideTabView != null) return
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
 
+        val prefs = getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
+        sideTabOnLeft = prefs.getBoolean("side_tab_left", false)
+
         val tab = FrameLayout(this)
 
         val strip = View(this).apply {
-            background = GradientDrawable().apply {
-                setColor(0x15FFFFFF)
-                setStroke(dpToPx(1.5f).toInt(), 0xBB333333.toInt())
-                cornerRadii = floatArrayOf(
-                    dpToPx(8f), dpToPx(8f), 0f, 0f,
-                    0f, 0f, dpToPx(8f), dpToPx(8f)
-                )
-            }
+            background = stripDrawable(false)
         }
         tab.addView(strip, FrameLayout.LayoutParams(
             dpToPx(12f).toInt(),
             FrameLayout.LayoutParams.MATCH_PARENT,
-            Gravity.END
+            hGravity()
         ))
 
         val label = TextView(this).apply {
@@ -191,19 +212,92 @@ class BlindAccessibilityService : AccessibilityService() {
             FrameLayout.LayoutParams.MATCH_PARENT
         ))
 
-        tab.setOnClickListener {
-            if (isTabExpanded) {
-                handler.removeCallbacks(collapseRunnable)
-                toggleBlind()
-            } else {
-                expandSideTab()
+        val screenWidth = resources.displayMetrics.widthPixels
+        val screenHeight = resources.displayMetrics.heightPixels
+        val maxOffset = screenHeight / 2 - dpToPx(70f).toInt()
+
+        tab.setOnTouchListener { v, event ->
+            val p = tab.layoutParams as WindowManager.LayoutParams
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    val loc = IntArray(2)
+                    tab.getLocationOnScreen(loc)
+                    dragStartX = loc[0]
+                    dragStartY = loc[1]
+                    dragTouchX = event.rawX
+                    dragTouchY = event.rawY
+                    isDraggingTab = false
+                    // Long-press to enter drag mode (only in collapsed waiting state)
+                    if (!isTabExpanded) {
+                        longPressRunnable = Runnable {
+                            isDraggingTab = true
+                            v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            strip.background = stripDrawable(true)
+                            // Switch to absolute positioning for free left/right/up/down drag
+                            p.gravity = Gravity.TOP or Gravity.START
+                            p.x = dragStartX
+                            p.y = dragStartY
+                            wm.updateViewLayout(tab, p)
+                        }
+                        handler.postDelayed(longPressRunnable!!, 400L)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - dragTouchX
+                    val dy = event.rawY - dragTouchY
+                    if (!isDraggingTab && (abs(dx) > touchSlop || abs(dy) > touchSlop)) {
+                        longPressRunnable?.let { handler.removeCallbacks(it) }
+                    }
+                    if (isDraggingTab) {
+                        p.x = (dragStartX + dx.toInt()).coerceIn(0, screenWidth - p.width)
+                        p.y = (dragStartY + dy.toInt()).coerceIn(0, screenHeight - p.height)
+                        wm.updateViewLayout(tab, p)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    longPressRunnable?.let { handler.removeCallbacks(it) }
+                    if (isDraggingTab) {
+                        // Snap to nearest side edge, keep vertical position
+                        val centerX = p.x + p.width / 2
+                        sideTabOnLeft = centerX < screenWidth / 2
+                        val centerY = p.y + p.height / 2
+                        val yOffset = (centerY - screenHeight / 2).coerceIn(-maxOffset, maxOffset)
+                        p.gravity = hGravity() or Gravity.CENTER_VERTICAL
+                        p.x = 0
+                        p.y = yOffset
+                        wm.updateViewLayout(tab, p)
+                        (strip.layoutParams as FrameLayout.LayoutParams).gravity = hGravity()
+                        strip.requestLayout()
+                        strip.background = stripDrawable(false)
+                        saveSideTab(sideTabOnLeft, yOffset)
+                        isDraggingTab = false
+                    } else if (abs(event.rawX - dragTouchX) < touchSlop &&
+                        abs(event.rawY - dragTouchY) < touchSlop &&
+                        event.action == MotionEvent.ACTION_UP) {
+                        if (isTabExpanded) {
+                            handler.removeCallbacks(collapseRunnable)
+                            toggleBlind()
+                        } else {
+                            expandSideTab()
+                        }
+                    }
+                    true
+                }
+                else -> false
             }
         }
 
         sideTabView = tab
         isTabExpanded = false
 
-        val screenHeight = resources.displayMetrics.heightPixels
+        val savedY = if (prefs.contains("side_tab_y")) {
+            prefs.getInt("side_tab_y", 0)
+        } else {
+            (screenHeight * 0.17f).toInt()
+        }
+
         val params = WindowManager.LayoutParams(
             dpToPx(24f).toInt(),
             dpToPx(96f).toInt(),
@@ -211,11 +305,38 @@ class BlindAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.END or Gravity.CENTER_VERTICAL
-            y = (screenHeight * 0.17f).toInt()
+            gravity = hGravity() or Gravity.CENTER_VERTICAL
+            y = savedY
         }
 
         wm.addView(tab, params)
+    }
+
+    private fun stripDrawable(active: Boolean): GradientDrawable {
+        return GradientDrawable().apply {
+            if (active) {
+                setColor(0x3340C4FF)
+                setStroke(dpToPx(2.5f).toInt(), 0xFF40C4FF.toInt())
+            } else {
+                setColor(0x15FFFFFF)
+                setStroke(dpToPx(1.5f).toInt(), 0xBB333333.toInt())
+            }
+            val r = dpToPx(8f)
+            // Round only the inner corners (facing the screen center)
+            cornerRadii = if (sideTabOnLeft) {
+                floatArrayOf(0f, 0f, r, r, r, r, 0f, 0f)
+            } else {
+                floatArrayOf(r, r, 0f, 0f, 0f, 0f, r, r)
+            }
+        }
+    }
+
+    private fun saveSideTab(onLeft: Boolean, y: Int) {
+        getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean("side_tab_left", onLeft)
+            .putInt("side_tab_y", y)
+            .apply()
     }
 
     private fun expandSideTab() {
@@ -229,20 +350,22 @@ class BlindAccessibilityService : AccessibilityService() {
         val strip = (tab as FrameLayout).getChildAt(0)
         strip.visibility = View.GONE
 
+        val r = dpToPx(16f)
         val btnBg = View(this).apply {
             background = GradientDrawable().apply {
                 setColor(0xEE1A1A2E.toInt())
                 setStroke(dpToPx(1f).toInt(), 0x40FFFFFF)
-                cornerRadii = floatArrayOf(
-                    dpToPx(16f), dpToPx(16f), 0f, 0f,
-                    0f, 0f, dpToPx(16f), dpToPx(16f)
-                )
+                cornerRadii = if (sideTabOnLeft) {
+                    floatArrayOf(0f, 0f, r, r, r, r, 0f, 0f)
+                } else {
+                    floatArrayOf(r, r, 0f, 0f, 0f, 0f, r, r)
+                }
             }
         }
         tab.addView(btnBg, 0, FrameLayout.LayoutParams(
             dpToPx(96f).toInt(),
             dpToPx(96f).toInt(),
-            Gravity.END or Gravity.CENTER_VERTICAL
+            hGravity() or Gravity.CENTER_VERTICAL
         ))
 
         val circleSize = dpToPx(48f).toInt()
@@ -256,14 +379,15 @@ class BlindAccessibilityService : AccessibilityService() {
         }
         tab.addView(pulseCircle, 1, FrameLayout.LayoutParams(
             circleSize, circleSize,
-            Gravity.END or Gravity.CENTER_VERTICAL
+            hGravity() or Gravity.CENTER_VERTICAL
         ).apply {
-            marginEnd = dpToPx(24f).toInt()
+            if (sideTabOnLeft) marginStart = dpToPx(24f).toInt()
+            else marginEnd = dpToPx(24f).toInt()
         })
 
         pulseAnimator?.cancel()
         pulseAnimator = ValueAnimator.ofFloat(0.5f, 1.3f).apply {
-            duration = 1000
+            duration = 800
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
             interpolator = android.view.animation.AccelerateDecelerateInterpolator()
@@ -283,7 +407,24 @@ class BlindAccessibilityService : AccessibilityService() {
         (label.layoutParams as FrameLayout.LayoutParams).apply {
             width = dpToPx(96f).toInt()
             height = dpToPx(96f).toInt()
-            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            gravity = hGravity() or Gravity.CENTER_VERTICAL
+        }
+
+        // Slide-in from the screen edge (negative = from the left)
+        val slideFrom = if (sideTabOnLeft) -dpToPx(120f) else dpToPx(120f)
+        btnBg.translationX = slideFrom
+        pulseCircle.translationX = slideFrom
+        label.translationX = slideFrom
+        ValueAnimator.ofFloat(1f, 0f).apply {
+            duration = 264
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener { anim ->
+                val tx = (anim.animatedValue as Float) * slideFrom
+                btnBg.translationX = tx
+                pulseCircle.translationX = tx
+                label.translationX = tx
+            }
+            start()
         }
 
         isTabExpanded = true
@@ -309,14 +450,7 @@ class BlindAccessibilityService : AccessibilityService() {
 
         container.getChildAt(0).apply {
             visibility = View.VISIBLE
-            background = GradientDrawable().apply {
-                setColor(0x15FFFFFF)
-                setStroke(dpToPx(1.5f).toInt(), 0xBB333333.toInt())
-                cornerRadii = floatArrayOf(
-                    dpToPx(8f), dpToPx(8f), 0f, 0f,
-                    0f, 0f, dpToPx(8f), dpToPx(8f)
-                )
-            }
+            background = stripDrawable(false)
         }
 
         val label = container.getChildAt(1) as TextView
@@ -344,11 +478,18 @@ class BlindAccessibilityService : AccessibilityService() {
 
     // ── Blind Overlay ──
 
-    private fun showBlind() {
+    private fun isInCall(): Boolean {
+        val am = getSystemService(AUDIO_SERVICE) as AudioManager
+        return am.mode == AudioManager.MODE_IN_CALL ||
+            am.mode == AudioManager.MODE_IN_COMMUNICATION
+    }
+
+    private fun showBlind(forceCallStyle: Boolean = false) {
         if (blindView != null) return
 
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        blindView = createBlindView()
+        val callStyle = forceCallStyle || isInCall()
+        blindView = createBlindView(callStyle)
 
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -375,11 +516,13 @@ class BlindAccessibilityService : AccessibilityService() {
         hideNotification()
     }
 
-    private fun createBlindView(): View {
+    private fun createBlindView(callStyle: Boolean): View {
         val container = FrameLayout(this)
 
+        // Call: dim the screen (50% black). Lock: fully transparent so video
+        // stays visible while touches are still blocked.
         val bg = View(this).apply {
-            setBackgroundColor(0x80000000.toInt())
+            setBackgroundColor(if (callStyle) 0x80000000.toInt() else 0x00000000)
             setOnTouchListener { _, _ -> true }
         }
         container.addView(bg, FrameLayout.LayoutParams(
@@ -387,25 +530,44 @@ class BlindAccessibilityService : AccessibilityService() {
             FrameLayout.LayoutParams.MATCH_PARENT
         ))
 
-        val dismissBox = TextView(this).apply {
-            text = getString(R.string.app_name)
-            setTextColor(0xDDFFFFFF.toInt())
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-            gravity = Gravity.CENTER
-            val padH = dpToPx(14f).toInt()
-            val padV = dpToPx(8f).toInt()
-            setPadding(padH, padV, padH, padV)
-            background = GradientDrawable().apply {
-                setColor(0x1A1E88E5.toInt())
-                setStroke(dpToPx(1.5f).toInt(), 0xFF1E88E5.toInt())
-                cornerRadius = dpToPx(10f)
+        val badge: View = if (callStyle) {
+            TextView(this).apply {
+                text = getString(R.string.app_name)
+                setTextColor(0xDDFFFFFF.toInt())
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                gravity = Gravity.CENTER
+                val padH = dpToPx(14f).toInt()
+                val padV = dpToPx(8f).toInt()
+                setPadding(padH, padV, padH, padV)
+                background = GradientDrawable().apply {
+                    setColor(0x1A1E88E5.toInt())
+                    setStroke(dpToPx(1.5f).toInt(), 0xFF1E88E5.toInt())
+                    cornerRadius = dpToPx(10f)
+                }
+                setOnClickListener { toggleBlind() }
             }
-            setOnClickListener { toggleBlind() }
+        } else {
+            // Lock icon for general touch-lock use. Thin ring + faint dark
+            // circle keep it findable on bright video (dial down later).
+            ImageView(this).apply {
+                setImageResource(R.drawable.ic_lock)
+                alpha = 0.85f
+                val p = dpToPx(11f).toInt()
+                setPadding(p, p, p, p)
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(0x40000000)
+                    setStroke(dpToPx(1.5f).toInt(), 0x80FFFFFF.toInt())
+                }
+                makeBadgeDraggable(this)
+            }
         }
 
-        container.addView(dismissBox, FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.WRAP_CONTENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT,
+        val badgeSize = if (callStyle)
+            FrameLayout.LayoutParams.WRAP_CONTENT else dpToPx(48f).toInt()
+        container.addView(badge, FrameLayout.LayoutParams(
+            badgeSize,
+            if (callStyle) FrameLayout.LayoutParams.WRAP_CONTENT else dpToPx(48f).toInt(),
             Gravity.BOTTOM or Gravity.END
         ).apply {
             bottomMargin = dpToPx(80f).toInt()
@@ -413,6 +575,71 @@ class BlindAccessibilityService : AccessibilityService() {
         })
 
         return container
+    }
+
+    /** Long-press to drag the lock badge; short tap dismisses. Position persists. */
+    private fun makeBadgeDraggable(badge: View) {
+        val screenW = resources.displayMetrics.widthPixels
+        val screenH = resources.displayMetrics.heightPixels
+        val minTx = -(screenW - dpToPx(68f))
+        val maxTx = dpToPx(20f)
+        val minTy = -(screenH - dpToPx(168f))
+        val maxTy = dpToPx(60f)
+
+        val prefs = getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
+        badge.translationX = prefs.getFloat("lock_badge_tx", 0f).coerceIn(minTx, maxTx)
+        badge.translationY = prefs.getFloat("lock_badge_ty", 0f).coerceIn(minTy, maxTy)
+
+        badge.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    badgeInitialTX = badge.translationX
+                    badgeInitialTY = badge.translationY
+                    badgeTouchX = event.rawX
+                    badgeTouchY = event.rawY
+                    isDraggingBadge = false
+                    badgeLongPress = Runnable {
+                        isDraggingBadge = true
+                        v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                        v.alpha = 1f
+                    }
+                    handler.postDelayed(badgeLongPress!!, 400L)
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - badgeTouchX
+                    val dy = event.rawY - badgeTouchY
+                    if (!isDraggingBadge && (abs(dx) > touchSlop || abs(dy) > touchSlop)) {
+                        badgeLongPress?.let { handler.removeCallbacks(it) }
+                    }
+                    if (isDraggingBadge) {
+                        badge.translationX = (badgeInitialTX + dx).coerceIn(minTx, maxTx)
+                        badge.translationY = (badgeInitialTY + dy).coerceIn(minTy, maxTy)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    badgeLongPress?.let { handler.removeCallbacks(it) }
+                    if (isDraggingBadge) {
+                        prefs.edit()
+                            .putFloat("lock_badge_tx", badge.translationX)
+                            .putFloat("lock_badge_ty", badge.translationY)
+                            .apply()
+                        badge.alpha = 0.85f
+                        isDraggingBadge = false
+                    } else {
+                        val dx = event.rawX - badgeTouchX
+                        val dy = event.rawY - badgeTouchY
+                        if (abs(dx) < touchSlop && abs(dy) < touchSlop &&
+                            event.action == MotionEvent.ACTION_UP) {
+                            toggleBlind()
+                        }
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     // ── Notification ──

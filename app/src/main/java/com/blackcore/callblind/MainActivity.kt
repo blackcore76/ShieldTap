@@ -23,6 +23,9 @@ class MainActivity : AppCompatActivity() {
         getSharedPreferences("shieldtap_prefs", MODE_PRIVATE)
     }
 
+    private lateinit var billing: BillingManager
+    private var justPurchased = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -32,12 +35,50 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        billing = BillingManager(this) { entitled ->
+            runOnUiThread { onEntitlementChanged(entitled) }
+        }
+        billing.start()
+
+        findViewById<TextView>(R.id.tvHowToGuide).setOnClickListener {
+            showHowToDialog()
+        }
+
         findViewById<TextView>(R.id.tvUsageGuide).setOnClickListener {
             showUsageGuideDialog()
         }
 
         setupModeSelection()
         updateUI()
+    }
+
+    private fun onEntitlementChanged(entitled: Boolean) {
+        if (entitled) {
+            if (justPurchased) {
+                justPurchased = false
+                setMode("plus")
+            }
+        } else if (isAutoMode()) {
+            // Plus not owned but mode was Plus (e.g. carried over) -> revert to Basic
+            prefs.edit().putString("mode", "basic").apply()
+            BlindAccessibilityService.instance?.onModeChanged()
+        }
+        setupModeSelection()
+    }
+
+    private fun selectPlusOrPurchase() {
+        if (billing.isEntitled()) {
+            setMode("plus")
+        } else {
+            justPurchased = true
+            if (!billing.launchPurchase(this)) {
+                justPurchased = false
+                android.widget.Toast.makeText(
+                    this, getString(R.string.billing_unavailable),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -83,7 +124,11 @@ class MainActivity : AppCompatActivity() {
             btnBasic.text = getString(R.string.mode_in_use)
             btnBasic.setTextColor(0xFFFFFFFF.toInt())
             btnPlus.setBackgroundResource(R.drawable.bg_btn_select)
-            btnPlus.text = getString(R.string.mode_select)
+            btnPlus.text = if (::billing.isInitialized && billing.isEntitled()) {
+                getString(R.string.mode_select)
+            } else {
+                getString(R.string.mode_unlock_price)
+            }
             btnPlus.setTextColor(0xB3FFFFFF.toInt())
         }
 
@@ -91,13 +136,13 @@ class MainActivity : AppCompatActivity() {
             if (isAutoMode()) setMode("basic")
         }
         btnPlus.setOnClickListener {
-            if (!isAutoMode()) setMode("plus")
+            if (!isAutoMode()) selectPlusOrPurchase()
         }
         cardBasic.setOnClickListener {
             if (isAutoMode()) setMode("basic")
         }
         cardPlus.setOnClickListener {
-            if (!isAutoMode()) setMode("plus")
+            if (!isAutoMode()) selectPlusOrPurchase()
         }
     }
 
@@ -203,6 +248,14 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
+    }
+
+    private fun showHowToDialog() {
+        AlertDialog.Builder(this, R.style.Theme_CallBlind_Dialog)
+            .setTitle(getString(R.string.howto_title))
+            .setMessage(getString(R.string.howto_content))
+            .setPositiveButton(getString(R.string.usage_guide_close), null)
+            .show()
     }
 
     private fun showUsageGuideDialog() {

@@ -5,13 +5,13 @@ plugins {
 
 android {
     namespace 'com.blackcore.callblind'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
-        applicationId "com.blackcore.callblind"
+        applicationId "com.blackcore.shieldtap"
         minSdk 26
-        targetSdk 34
-        versionCode 1
+        targetSdk 36
+        versionCode 22
         versionName "1.0.0"
     }
 
@@ -34,6 +34,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        buildConfig true
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -41,10 +44,17 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "ShieldTap-${variant.versionName}-${variant.versionCode}-${variant.buildType.name}.apk"
+        }
+    }
 }
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
+    implementation 'com.android.billingclient:billing:8.0.0'
 }

@@ -5,8 +5,11 @@
     <string name="accessibility_service_description">Blocks screen touches during calls to prevent accidental video call button presses</string>
 
     <!-- Main Screen -->
-    <string name="usage_guide_button">Usage Guide ></string>
-    <string name="usage_guide_title">Usage Guide</string>
+    <string name="howto_button">How to Use ></string>
+    <string name="howto_title">How to Use</string>
+    <string name="howto_content">■ Basic Usage (Basic mode)\nWhen making or receiving a call, tap the side tab button on the right edge to expand it, then tap \"Start\".\nWhen the ShieldTap badge appears at the bottom-right, touch blocking is active.\n\n■ Turn Off\nTap the ShieldTap badge to turn off touch blocking; the side tab button reappears.\n\n■ Move the Side Tab\nLong-press the side tab button — the border brightens and it enters move mode.\nDrag left/right or up/down to place it where your thumb reaches easily. (Left-handed users can move it to the left edge.)\n\n■ Plus Mode (Automatic)\nIn Plus mode, touch blocking turns on automatically when a call connects and off when it ends. No side tab action is needed.\nIf you turn it off manually during a call, it won\'t re-activate for that call; it resumes automatically on the next call.</string>
+    <string name="usage_guide_button">Permissions ></string>
+    <string name="usage_guide_title">Permissions</string>
     <string name="usage_guide_content">ShieldTap prevents unintended screen touches during phone calls.\n\n■ Accessibility Service\nRequired to display the touch-blocking overlay on screen.\nDoes not read or collect any screen content.\n\n■ Call Detection (Plus)\nDetects call connection and disconnection to automatically enable and disable the blind.\nDoes not access phone numbers or call content.\n\n■ Battery Optimization Exemption\nPrevents some manufacturers (Samsung, etc.) from force-stopping the background service.\n\n■ Privacy\nShieldTap does not collect, store, or transmit any personal information.\nNo internet permission is used.</string>
     <string name="usage_guide_close">Close</string>
 
@@ -17,12 +20,14 @@
     <string name="plan_plus_desc">Auto-activate during calls</string>
     <string name="mode_select">Select</string>
     <string name="mode_in_use">In Use</string>
+    <string name="mode_unlock_price">Unlock ₩2,900</string>
+    <string name="billing_unavailable">Connecting to store. Please try again in a moment.</string>
 
     <!-- Permissions -->
     <string name="perm_title">Permission Status</string>
     <string name="perm_accessibility">Accessibility Service</string>
-    <string name="perm_phone_state">Call Detection</string>
-    <string name="perm_battery">Battery Exemption</string>
+    <string name="perm_phone_state">Call Detection (Plus only)</string>
+    <string name="perm_battery">Battery Optimization Exemption</string>
     <string name="perm_active">Active</string>
     <string name="perm_inactive">Inactive — Set up</string>
     <string name="perm_granted">Granted</string>
@@ -31,7 +36,7 @@
 
     <string name="btn_on">Turn On ShieldTap</string>
     <string name="btn_off">Close</string>
-    <string name="version_text">ShieldTap v1.0.0-3</string>
+    <string name="version_text">ShieldTap v1.0.0</string>
 
     <!-- Side Tab -->
     <string name="side_tab_activate">Start</string>

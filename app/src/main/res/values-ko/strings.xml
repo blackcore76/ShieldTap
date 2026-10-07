@@ -5,8 +5,11 @@
     <string name="accessibility_service_description">통화 중 화면 터치를 차단하여 영상통화 버튼 오터치를 방지합니다</string>
 
     <!-- Main Screen -->
-    <string name="usage_guide_button">사용 안내 ></string>
-    <string name="usage_guide_title">사용 안내</string>
+    <string name="howto_button">사용법 ></string>
+    <string name="howto_title">사용법</string>
+    <string name="howto_content">■ 기본 사용법 (기본 모드)\n통화 수·발신 시 화면 오른쪽의 사이드 탭 버튼을 눌러 확장한 뒤 \"시작\"을 누르세요.\n오른쪽 아래에 ShieldTap 배지가 보이면 터치 방지가 작동 중입니다.\n\n■ 해제\nShieldTap 배지를 누르면 터치 방지가 해제되고 다시 사이드 탭 버튼이 나타납니다.\n\n■ 사이드 탭 위치 이동\n사이드 탭 버튼을 길게 누르면 테두리가 밝아지며 이동 모드가 됩니다.\n그 상태로 좌·우, 위·아래로 드래그해 엄지로 편한 위치에 놓으세요. (왼손잡이는 왼쪽 가장자리로 이동 가능)\n\n■ 플러스 모드 (자동)\n플러스 모드에서는 통화가 연결되면 자동으로 터치 방지가 켜지고, 통화가 끝나면 자동으로 꺼집니다. 사이드 탭 조작이 필요 없습니다.\n통화 중 직접 해제하면 그 통화 동안은 다시 자동으로 켜지지 않으며, 다음 통화부터 다시 자동 작동합니다.</string>
+    <string name="usage_guide_button">권한 안내 ></string>
+    <string name="usage_guide_title">권한 안내</string>
     <string name="usage_guide_content">ShieldTap은 통화 중 의도하지 않은 화면 터치를 방지합니다.\n\n■ 접근성 서비스 권한\n화면 위에 터치 차단 오버레이를 표시하기 위해 필요합니다.\n화면 내용을 읽거나 수집하지 않습니다.\n\n■ 통화 감지 권한 (플러스)\n통화 연결과 종료를 감지하여 자동으로 블라인드를 켜고 끕니다.\n전화번호나 통화 내용에 접근하지 않습니다.\n\n■ 배터리 최적화 예외\n삼성 등 일부 제조사에서 백그라운드 서비스를 강제 종료하는 것을 방지합니다.\n\n■ 개인정보\nShieldTap은 어떠한 개인정보도 수집, 저장, 전송하지 않습니다.\n인터넷 권한을 사용하지 않습니다.</string>
     <string name="usage_guide_close">닫기</string>
 
@@ -17,12 +20,14 @@
     <string name="plan_plus_desc">통화 시 자동 활성화/해제</string>
     <string name="mode_select">선택</string>
     <string name="mode_in_use">사용 중</string>
+    <string name="mode_unlock_price">₩2,900 구매</string>
+    <string name="billing_unavailable">스토어 연결을 확인 중입니다. 잠시 후 다시 시도해 주세요.</string>
 
     <!-- Permissions -->
     <string name="perm_title">권한 상태</string>
     <string name="perm_accessibility">접근성 서비스</string>
-    <string name="perm_phone_state">통화 감지</string>
-    <string name="perm_battery">배터리 예외</string>
+    <string name="perm_phone_state">통화 감지 (플러스 전용)</string>
+    <string name="perm_battery">배터리 최적화 예외</string>
     <string name="perm_active">활성</string>
     <string name="perm_inactive">비활성 — 설정하기</string>
     <string name="perm_granted">허용됨</string>
@@ -31,7 +36,7 @@
 
     <string name="btn_on">ShieldTap 켜기</string>
     <string name="btn_off">닫기</string>
-    <string name="version_text">ShieldTap v1.0.0-3</string>
+    <string name="version_text">ShieldTap v1.0.0</string>
 
     <!-- Side Tab -->
     <string name="side_tab_activate">시작</string>
