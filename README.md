@@ -26,6 +26,8 @@ ShieldTap은 통화 중 터치 차단 오버레이를 씌워 이런 오터치를
 |---|---|---|
 | 사이드 탭 수동 켜기/끄기 | O | O |
 | 통화 시 자동 활성화 | — | O |
+| 터치 잠금 (동영상 시청 등 통화 외, 투명 블라인드) | O | O |
+| 사이드 탭 위치 이동 (길게 눌러 좌·우, 위·아래) | O | O |
 | 가격 | 무료 | ₩2,900 (인앱 구매) |
 
 ## 다운로드
@@ -63,6 +65,8 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 |---|---|---|
 | Side tab manual on/off | O | O |
 | Auto-activate during calls | — | O |
+| Touch Lock (non-call, e.g. videos — transparent overlay) | O | O |
+| Move the side tab (long-press, left/right, up/down) | O | O |
 | Price | Free | ₩2,900 (in-app) |
 
 ## Download
