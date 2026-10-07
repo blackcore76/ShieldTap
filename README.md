@@ -32,10 +32,6 @@ ShieldTap은 통화 중 터치 차단 오버레이를 씌워 이런 오터치를
 
 **[▶ Google Play Store에서 설치](https://play.google.com/store/apps/details?id=com.blackcore.shieldtap)**
 
-*(현재 비공개 테스트 중 — 정식 출시 준비 중입니다)*
-
-> **참고**: 플러스(Plus) 기능은 Google Play 결제로 제공되므로 반드시 Play Store에서 설치해야 정상 작동합니다. GitHub에서 APK를 직접 받아 설치하면 결제가 동작하지 않습니다.
-
 ## 권한
 
 | 권한 | 용도 |
@@ -72,10 +68,6 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 ## Download
 
 **[▶ Install from Google Play Store](https://play.google.com/store/apps/details?id=com.blackcore.shieldtap)**
-
-*(Currently in closed testing — production release coming soon)*
-
-> **Note**: Plus features are delivered via Google Play billing, so the app must be installed from the Play Store to work. A sideloaded GitHub APK cannot process the purchase.
 
 ## Permissions
 
