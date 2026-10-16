@@ -28,7 +28,7 @@ ShieldTap은 통화 중 터치 차단 오버레이를 씌워 이런 오터치를
 | 통화 시 자동 활성화 | — | O |
 | 터치 잠금 (동영상 시청 등 통화 외, 투명 블라인드) | O | O |
 | 사이드 탭 위치 이동 (길게 눌러 좌·우, 위·아래) | O | O |
-| 가격 | 무료 | ₩2,900 (인앱 구매) |
+| 가격 | 무료 | 현재 무료 |
 
 ## 다운로드
 
@@ -44,7 +44,7 @@ ShieldTap은 통화 중 터치 차단 오버레이를 씌워 이런 오터치를
 
 ## 개인정보
 
-ShieldTap은 어떠한 개인정보도 수집, 저장, 전송하지 않습니다. 인터넷 연결은 Google Play 인앱 구매 확인에만 사용됩니다.
+ShieldTap은 어떠한 개인정보도 수집, 저장, 전송하지 않습니다.
 
 [개인정보처리방침](https://blackcore76.github.io/ShieldTap/privacy-policy.html)
 
@@ -67,7 +67,7 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 | Auto-activate during calls | — | O |
 | Touch Lock (non-call, e.g. videos — transparent overlay) | O | O |
 | Move the side tab (long-press, left/right, up/down) | O | O |
-| Price | Free | ₩2,900 (in-app) |
+| Price | Free | Free for now |
 
 ## Download
 
@@ -83,7 +83,7 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 
 ## Privacy
 
-ShieldTap does not collect, store, or transmit any personal information. Internet is used only to verify Google Play in-app purchases.
+ShieldTap does not collect, store, or transmit any personal information.
 
 [Privacy Policy](https://blackcore76.github.io/ShieldTap/privacy-policy.html)
 
