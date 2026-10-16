@@ -40,9 +40,9 @@ class BillingManager(
         .build()
 
     fun start() {
-        // Debug builds unlock Plus for free so the auto on/off logic can be
-        // tested locally (Play billing does not work on sideloaded debug APKs).
-        if (BuildConfig.DEBUG) {
+        // Debug builds (and PLUS_FREE) unlock Plus without Play billing, so the
+        // auto on/off logic works locally and while Plus is offered for free.
+        if (BuildConfig.DEBUG || PLUS_FREE) {
             setEntitled(true)
             return
         }
@@ -119,9 +119,12 @@ class BillingManager(
     }
 
     fun isEntitled(): Boolean =
-        BuildConfig.DEBUG || prefs.getBoolean("plus_purchased", false)
+        BuildConfig.DEBUG || PLUS_FREE || prefs.getBoolean("plus_purchased", false)
 
     companion object {
+        // Plus is currently free for everyone. Set to false to restore the
+        // paid one-time unlock (plus_unlock) without other code changes.
+        const val PLUS_FREE = true
         const val PRODUCT_ID = "plus_unlock"
     }
 }

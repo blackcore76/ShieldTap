@@ -76,7 +76,7 @@ class BlindAccessibilityService : AccessibilityService() {
     private fun isAutoMode(): Boolean {
         val prefs = getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
         return prefs.getString("mode", "basic") == "plus" &&
-            prefs.getBoolean("plus_purchased", false)
+            (BillingManager.PLUS_FREE || prefs.getBoolean("plus_purchased", false))
     }
 
     fun onModeChanged() {

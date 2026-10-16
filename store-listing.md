@@ -23,10 +23,9 @@ ShieldTap은 통화 중 화면 위에 투명한 터치 차단 오버레이를 �
 • 화면 우측 사이드 탭 버튼으로 수동 켜기/끄기
 • 통화 시작 전 직접 활성화
 
-■ 플러스 모드 (인앱 구매)
+■ 플러스 모드 (현재 무료)
 • 통화 연결 시 자동으로 터치 차단 활성화
 • 통화 종료 시 자동 해제
-• 한 번 구매로 계속 사용
 
 ■ 터치 잠금 (통화 외)
 • 동영상 시청, 젖은 손, 아이에게 화면 보여줄 때 등
@@ -41,7 +40,6 @@ ShieldTap은 통화 중 화면 위에 투명한 터치 차단 오버레이를 �
 
 ■ 개인정보 보호
 • 개인정보와 통화 내용을 수집·저장·전송하지 않습니다
-• 인터넷 연결은 Google Play 인앱 구매 확인에만 사용됩니다
 • 오픈소스 (GitHub에서 소스코드 공개)
 
 ■ 대상 기기
@@ -62,10 +60,9 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 • Manual on/off via side tab button on screen edge
 • Activate before making a call
 
-■ Plus Mode (In-app purchase)
+■ Plus Mode (Free for now)
 • Automatically activates when a call connects
 • Automatically deactivates when the call ends
-• One-time purchase, yours to keep
 
 ■ Touch Lock (non-call)
 • For watching videos, wet hands, handing the phone to a child, etc.
@@ -80,7 +77,6 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 
 ■ Privacy
 • Does not collect, store, or transmit personal data or call content
-• Internet is used only to verify Google Play in-app purchases
 • Open source (source code available on GitHub)
 
 ■ Target Devices
