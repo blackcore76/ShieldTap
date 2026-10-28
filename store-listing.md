@@ -1,7 +1,7 @@
 # Play Store Listing — ShieldTap
 
 ## App Name
-ShieldTap - 통화 오터치 방지
+통화 오터치 방지 터치잠금 - ShieldTap
 
 ## App Name — English (30 chars)
 ShieldTap - Call Touch Guard
