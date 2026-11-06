@@ -42,7 +42,7 @@ class BlindAccessibilityService : AccessibilityService() {
     private var wasAutoActivated = false
     private var pulseAnimator: ValueAnimator? = null
     private val handler = Handler(Looper.getMainLooper())
-    private val collapseRunnable = Runnable { collapseSideTab() }
+    private val collapseRunnable = Runnable { animateExpandTo(0f) { collapseSideTab() } }
 
     private var isDraggingTab = false
     private var sideTabOnLeft = false
@@ -52,6 +52,19 @@ class BlindAccessibilityService : AccessibilityService() {
     private var dragTouchY = 0f
     private var longPressRunnable: Runnable? = null
     private val touchSlop by lazy { ViewConfiguration.get(this).scaledTouchSlop }
+    // Fingers wobble while holding; tolerate more movement before giving up on long-press.
+    private val holdSlop by lazy { touchSlop * 2 }
+
+    // Edge-panel style swipe: the expanded button follows the finger.
+    private var isSwipingTab = false
+    private var swipeOpening = true
+    private var swipeLastX = 0f
+    private var swipeLastT = 0L
+    private var swipeVx = 0f
+    private var expandViews: List<View> = emptyList()
+    private var expandSlideFrom = 0f
+    private var expandProgress = 0f
+    private var expandAnimator: ValueAnimator? = null
 
     private var isDraggingBadge = false
     private var badgeInitialTX = 0f
@@ -227,6 +240,10 @@ class BlindAccessibilityService : AccessibilityService() {
                     dragTouchX = event.rawX
                     dragTouchY = event.rawY
                     isDraggingTab = false
+                    isSwipingTab = false
+                    swipeLastX = event.rawX
+                    swipeLastT = event.eventTime
+                    swipeVx = 0f
                     // Long-press to enter drag mode (only in collapsed waiting state)
                     if (!isTabExpanded) {
                         longPressRunnable = Runnable {
@@ -246,8 +263,35 @@ class BlindAccessibilityService : AccessibilityService() {
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - dragTouchX
                     val dy = event.rawY - dragTouchY
-                    if (!isDraggingTab && (abs(dx) > touchSlop || abs(dy) > touchSlop)) {
+                    if (!isDraggingTab && (abs(dx) > holdSlop || abs(dy) > holdSlop)) {
                         longPressRunnable?.let { handler.removeCallbacks(it) }
+                    }
+                    val dt = (event.eventTime - swipeLastT).coerceAtLeast(1L)
+                    val inst = (event.rawX - swipeLastX) * 1000f / dt
+                    swipeVx = swipeVx * 0.4f + inst * 0.6f
+                    swipeLastX = event.rawX
+                    swipeLastT = event.eventTime
+                    val inward = if (sideTabOnLeft) dx else -dx
+                    if (!isDraggingTab && !isSwipingTab &&
+                        abs(inward) > holdSlop && abs(dx) > abs(dy)) {
+                        if (!isTabExpanded && inward > 0) {
+                            isSwipingTab = true
+                            swipeOpening = true
+                            expandSideTab(animate = false)
+                        } else if (isTabExpanded && inward < 0) {
+                            isSwipingTab = true
+                            swipeOpening = false
+                        }
+                        if (isSwipingTab) {
+                            longPressRunnable?.let { handler.removeCallbacks(it) }
+                            handler.removeCallbacks(collapseRunnable)
+                            expandAnimator?.cancel()
+                        }
+                    }
+                    if (isSwipingTab) {
+                        val dist = dpToPx(96f)
+                        val prog = if (swipeOpening) inward / dist else 1f + inward / dist
+                        setExpandProgress(prog.coerceIn(0f, 1f))
                     }
                     if (isDraggingTab) {
                         p.x = (dragStartX + dx.toInt()).coerceIn(0, screenWidth - p.width)
@@ -258,7 +302,25 @@ class BlindAccessibilityService : AccessibilityService() {
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     longPressRunnable?.let { handler.removeCallbacks(it) }
-                    if (isDraggingTab) {
+                    if (isSwipingTab) {
+                        isSwipingTab = false
+                        val vIn = if (sideTabOnLeft) swipeVx else -swipeVx
+                        val fling = dpToPx(400f)
+                        val open = when {
+                            event.action == MotionEvent.ACTION_CANCEL -> !swipeOpening
+                            vIn > fling -> true
+                            vIn < -fling -> false
+                            else -> expandProgress >= if (swipeOpening) 0.35f else 0.65f
+                        }
+                        if (open) {
+                            animateExpandTo(1f) {
+                                handler.removeCallbacks(collapseRunnable)
+                                handler.postDelayed(collapseRunnable, 3000)
+                            }
+                        } else {
+                            animateExpandTo(0f) { collapseSideTab() }
+                        }
+                    } else if (isDraggingTab) {
                         // Snap to nearest side edge, keep vertical position
                         val centerX = p.x + p.width / 2
                         sideTabOnLeft = centerX < screenWidth / 2
@@ -299,7 +361,7 @@ class BlindAccessibilityService : AccessibilityService() {
         }
 
         val params = WindowManager.LayoutParams(
-            dpToPx(24f).toInt(),
+            dpToPx(HANDLE_TOUCH_DP).toInt(),
             dpToPx(96f).toInt(),
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
@@ -339,8 +401,9 @@ class BlindAccessibilityService : AccessibilityService() {
             .apply()
     }
 
-    private fun expandSideTab() {
+    private fun expandSideTab(animate: Boolean = true) {
         val tab = sideTabView ?: return
+        if (isTabExpanded) return
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         val params = tab.layoutParams as WindowManager.LayoutParams
         params.width = dpToPx(120f).toInt()
@@ -411,32 +474,56 @@ class BlindAccessibilityService : AccessibilityService() {
         }
 
         // Slide-in from the screen edge (negative = from the left)
-        val slideFrom = if (sideTabOnLeft) -dpToPx(120f) else dpToPx(120f)
-        btnBg.translationX = slideFrom
-        pulseCircle.translationX = slideFrom
-        label.translationX = slideFrom
-        ValueAnimator.ofFloat(1f, 0f).apply {
-            duration = 264
-            interpolator = android.view.animation.DecelerateInterpolator()
-            addUpdateListener { anim ->
-                val tx = (anim.animatedValue as Float) * slideFrom
-                btnBg.translationX = tx
-                pulseCircle.translationX = tx
-                label.translationX = tx
-            }
-            start()
-        }
+        expandSlideFrom = if (sideTabOnLeft) -dpToPx(120f) else dpToPx(120f)
+        expandViews = listOf(btnBg, pulseCircle, label)
+        setExpandProgress(0f)
 
         isTabExpanded = true
         handler.removeCallbacks(collapseRunnable)
-        handler.postDelayed(collapseRunnable, 3000)
+        if (animate) {
+            animateExpandTo(1f) { handler.postDelayed(collapseRunnable, 3000) }
+        }
+    }
+
+    private fun setExpandProgress(p: Float) {
+        expandProgress = p
+        val tx = (1f - p) * expandSlideFrom
+        expandViews.forEach { it.translationX = tx }
+    }
+
+    private fun animateExpandTo(target: Float, onEnd: () -> Unit) {
+        expandAnimator?.cancel()
+        val from = expandProgress
+        val remaining = abs(target - from)
+        if (expandViews.isEmpty() || remaining < 0.01f) {
+            setExpandProgress(target)
+            onEnd()
+            return
+        }
+        expandAnimator = ValueAnimator.ofFloat(from, target).apply {
+            duration = (264 * remaining).toLong().coerceAtLeast(120L)
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener { setExpandProgress(it.animatedValue as Float) }
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                private var cancelled = false
+                override fun onAnimationCancel(a: android.animation.Animator) { cancelled = true }
+                override fun onAnimationEnd(a: android.animation.Animator) {
+                    if (!cancelled) onEnd()
+                }
+            })
+            start()
+        }
     }
 
     private fun collapseSideTab() {
+        expandAnimator?.cancel()
+        expandAnimator = null
+        expandViews = emptyList()
+        expandProgress = 0f
         val tab = sideTabView ?: return
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         val params = tab.layoutParams as WindowManager.LayoutParams
-        params.width = dpToPx(24f).toInt()
+        params.width = dpToPx(HANDLE_TOUCH_DP).toInt()
         params.height = dpToPx(96f).toInt()
         wm.updateViewLayout(tab, params)
 
@@ -702,6 +789,8 @@ class BlindAccessibilityService : AccessibilityService() {
         var isBlindActive = false
             private set
 
+        // Invisible touch width of the collapsed handle; the visible strip stays 12dp.
+        private const val HANDLE_TOUCH_DP = 36f
         private const val CHANNEL_ID = "call_blind_channel"
         private const val NOTIFICATION_ID = 1
     }
