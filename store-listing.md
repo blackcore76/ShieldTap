@@ -40,6 +40,7 @@ ShieldTap은 통화 중 화면 위에 투명한 터치 차단 오버레이를 �
 
 ■ 개인정보 보호
 • 개인정보와 통화 내용을 수집·저장·전송하지 않습니다
+• 인터넷 권한을 사용하지 않습니다
 • 오픈소스 (GitHub에서 소스코드 공개)
 
 ■ 대상 기기
@@ -77,6 +78,7 @@ ShieldTap places a transparent touch-blocking overlay on your screen during call
 
 ■ Privacy
 • Does not collect, store, or transmit personal data or call content
+• No internet permission used
 • Open source (source code available on GitHub)
 
 ■ Target Devices
