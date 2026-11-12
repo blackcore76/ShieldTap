@@ -36,7 +36,7 @@
 
     <string name="btn_on">Turn On ShieldTap</string>
     <string name="btn_off">Close</string>
-    <string name="version_text">ShieldTap v1.0.2</string>
+    <string name="version_text">ShieldTap v1.0.3</string>
 
     <!-- Side Tab -->
     <string name="side_tab_activate">Start</string>

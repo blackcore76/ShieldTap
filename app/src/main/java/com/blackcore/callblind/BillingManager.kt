@@ -2,129 +2,27 @@ package com.blackcore.callblind
 
 import android.app.Activity
 import android.content.Context
-import com.android.billingclient.api.AcknowledgePurchaseParams
-import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClientStateListener
-import com.android.billingclient.api.BillingFlowParams
-import com.android.billingclient.api.BillingResult
-import com.android.billingclient.api.PendingPurchasesParams
-import com.android.billingclient.api.ProductDetails
-import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchasesUpdatedListener
-import com.android.billingclient.api.QueryProductDetailsParams
-import com.android.billingclient.api.QueryPurchasesParams
 
 /**
- * Google Play Billing for the one-time "Plus" unlock (non-consumable).
- * Entitlement is cached in SharedPreferences and re-verified on every start
- * via queryPurchases (handles reinstall / new device).
+ * Plus is free and Google Play Billing is not bundled (no BILLING / INTERNET
+ * permission, no "in-app purchases" label). The paid one-time unlock lives in
+ * git tag v1.0.2 (BillingManager.kt + billing dependency) if it is ever revived.
  */
 class BillingManager(
     private val context: Context,
     private val onEntitlementChanged: (Boolean) -> Unit
 ) {
-    private val prefs = context.getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
-    private var productDetails: ProductDetails? = null
-
-    private val purchasesListener = PurchasesUpdatedListener { result, purchases ->
-        if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-            purchases.forEach { handlePurchase(it) }
-        }
-    }
-
-    private val billingClient = BillingClient.newBuilder(context)
-        .setListener(purchasesListener)
-        .enablePendingPurchases(
-            PendingPurchasesParams.newBuilder().enableOneTimeProducts().build()
-        )
-        .build()
-
     fun start() {
-        // Debug builds (and PLUS_FREE) unlock Plus without Play billing, so the
-        // auto on/off logic works locally and while Plus is offered for free.
-        if (BuildConfig.DEBUG || PLUS_FREE) {
-            setEntitled(true)
-            return
-        }
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(result: BillingResult) {
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                    queryProduct()
-                    queryPurchases()
-                }
-            }
-
-            override fun onBillingServiceDisconnected() {}
-        })
+        context.getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
+            .edit().putBoolean("plus_purchased", true).apply()
+        onEntitlementChanged(true)
     }
 
-    private fun queryProduct() {
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(
-                listOf(
-                    QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId(PRODUCT_ID)
-                        .setProductType(BillingClient.ProductType.INAPP)
-                        .build()
-                )
-            ).build()
-        billingClient.queryProductDetailsAsync(params) { _, result ->
-            productDetails = result.productDetailsList.firstOrNull()
-        }
-    }
+    fun launchPurchase(activity: Activity): Boolean = false
 
-    private fun queryPurchases() {
-        val params = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.INAPP)
-            .build()
-        billingClient.queryPurchasesAsync(params) { _, purchases ->
-            val owned = purchases.any {
-                it.products.contains(PRODUCT_ID) &&
-                    it.purchaseState == Purchase.PurchaseState.PURCHASED
-            }
-            setEntitled(owned)
-            purchases.forEach { handlePurchase(it) }
-        }
-    }
-
-    fun launchPurchase(activity: Activity): Boolean {
-        val pd = productDetails ?: return false
-        val params = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(
-                listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(pd)
-                        .build()
-                )
-            ).build()
-        billingClient.launchBillingFlow(activity, params)
-        return true
-    }
-
-    private fun handlePurchase(purchase: Purchase) {
-        if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) return
-        if (!purchase.products.contains(PRODUCT_ID)) return
-        if (!purchase.isAcknowledged) {
-            val ackParams = AcknowledgePurchaseParams.newBuilder()
-                .setPurchaseToken(purchase.purchaseToken)
-                .build()
-            billingClient.acknowledgePurchase(ackParams) { }
-        }
-        setEntitled(true)
-    }
-
-    private fun setEntitled(entitled: Boolean) {
-        prefs.edit().putBoolean("plus_purchased", entitled).apply()
-        onEntitlementChanged(entitled)
-    }
-
-    fun isEntitled(): Boolean =
-        BuildConfig.DEBUG || PLUS_FREE || prefs.getBoolean("plus_purchased", false)
+    fun isEntitled(): Boolean = true
 
     companion object {
-        // Plus is currently free for everyone. Set to false to restore the
-        // paid one-time unlock (plus_unlock) without other code changes.
         const val PLUS_FREE = true
-        const val PRODUCT_ID = "plus_unlock"
     }
 }
