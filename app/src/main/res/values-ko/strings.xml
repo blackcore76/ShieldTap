@@ -36,7 +36,7 @@
 
     <string name="btn_on">ShieldTap 켜기</string>
     <string name="btn_off">닫기</string>
-    <string name="version_text">ShieldTap v1.0.3</string>
+    <string name="version_text">ShieldTap v1.0.4</string>
 
     <!-- Side Tab -->
     <string name="side_tab_size">사이드 탭 크기</string>
