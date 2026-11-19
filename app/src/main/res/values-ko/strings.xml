@@ -39,6 +39,10 @@
     <string name="version_text">ShieldTap v1.0.3</string>
 
     <!-- Side Tab -->
+    <string name="side_tab_size">사이드 탭 크기</string>
+    <string name="side_tab_size_large">크게</string>
+    <string name="side_tab_size_medium">보통</string>
+    <string name="side_tab_size_small">작게</string>
     <string name="side_tab_activate">시작</string>
 
     <!-- Blind Overlay -->

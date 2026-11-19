@@ -39,6 +39,10 @@
     <string name="version_text">ShieldTap v1.0.3</string>
 
     <!-- Side Tab -->
+    <string name="side_tab_size">Side tab size</string>
+    <string name="side_tab_size_large">Large</string>
+    <string name="side_tab_size_medium">Medium</string>
+    <string name="side_tab_size_small">Small</string>
     <string name="side_tab_activate">Start</string>
 
     <!-- Blind Overlay -->

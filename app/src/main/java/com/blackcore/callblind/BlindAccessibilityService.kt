@@ -209,8 +209,8 @@ class BlindAccessibilityService : AccessibilityService() {
         }
         tab.addView(strip, FrameLayout.LayoutParams(
             dpToPx(12f).toInt(),
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            hGravity()
+            dpToPx(handleVisibleDp()).toInt(),
+            hGravity() or Gravity.CENTER_VERTICAL
         ))
 
         val label = TextView(this).apply {
@@ -330,7 +330,8 @@ class BlindAccessibilityService : AccessibilityService() {
                         p.x = 0
                         p.y = yOffset
                         wm.updateViewLayout(tab, p)
-                        (strip.layoutParams as FrameLayout.LayoutParams).gravity = hGravity()
+                        (strip.layoutParams as FrameLayout.LayoutParams).gravity =
+                            hGravity() or Gravity.CENTER_VERTICAL
                         strip.requestLayout()
                         strip.background = stripDrawable(false)
                         saveSideTab(sideTabOnLeft, yOffset)
@@ -362,7 +363,7 @@ class BlindAccessibilityService : AccessibilityService() {
 
         val params = WindowManager.LayoutParams(
             dpToPx(HANDLE_TOUCH_DP).toInt(),
-            dpToPx(96f).toInt(),
+            dpToPx(handleWindowDp()).toInt(),
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
@@ -372,6 +373,24 @@ class BlindAccessibilityService : AccessibilityService() {
         }
 
         wm.addView(tab, params)
+    }
+
+    // Collapsed handle height: large 100% / medium 60% / small 30% of 96dp.
+    private fun handleVisibleDp(): Float =
+        when (getSharedPreferences("shieldtap_prefs", Context.MODE_PRIVATE)
+            .getString("side_tab_size", "large")) {
+            "medium" -> 58f
+            "small" -> 29f
+            else -> 96f
+        }
+
+    // Touch area never drops below a comfortable finger target.
+    private fun handleWindowDp(): Float = maxOf(handleVisibleDp(), HANDLE_MIN_TOUCH_H_DP)
+
+    fun onSideTabSizeChanged() {
+        if (sideTabView == null || isTabExpanded || isDraggingTab || isSwipingTab) return
+        hideSideTab()
+        showSideTab()
     }
 
     private fun stripDrawable(active: Boolean): GradientDrawable {
@@ -524,7 +543,7 @@ class BlindAccessibilityService : AccessibilityService() {
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         val params = tab.layoutParams as WindowManager.LayoutParams
         params.width = dpToPx(HANDLE_TOUCH_DP).toInt()
-        params.height = dpToPx(96f).toInt()
+        params.height = dpToPx(handleWindowDp()).toInt()
         wm.updateViewLayout(tab, params)
 
         pulseAnimator?.cancel()
@@ -791,6 +810,7 @@ class BlindAccessibilityService : AccessibilityService() {
 
         // Invisible touch width of the collapsed handle; the visible strip stays 12dp.
         private const val HANDLE_TOUCH_DP = 36f
+        private const val HANDLE_MIN_TOUCH_H_DP = 56f
         private const val CHANNEL_ID = "call_blind_channel"
         private const val NOTIFICATION_ID = 1
     }

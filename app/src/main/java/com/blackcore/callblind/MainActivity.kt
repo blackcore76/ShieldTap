@@ -49,7 +49,32 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupModeSelection()
+        setupSideTabSize()
         updateUI()
+    }
+
+    private fun setupSideTabSize() {
+        val options = listOf(
+            "large" to findViewById<TextView>(R.id.tvSizeLarge),
+            "medium" to findViewById<TextView>(R.id.tvSizeMedium),
+            "small" to findViewById<TextView>(R.id.tvSizeSmall)
+        )
+        fun render() {
+            val current = prefs.getString("side_tab_size", "large")
+            options.forEach { (key, tv) ->
+                val selected = key == current
+                tv.setTextColor(if (selected) 0xFF90CAF9.toInt() else 0x66FFFFFF)
+                tv.setTypeface(null, if (selected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+            }
+        }
+        options.forEach { (key, tv) ->
+            tv.setOnClickListener {
+                prefs.edit().putString("side_tab_size", key).apply()
+                render()
+                BlindAccessibilityService.instance?.onSideTabSizeChanged()
+            }
+        }
+        render()
     }
 
     private fun onEntitlementChanged(entitled: Boolean) {
