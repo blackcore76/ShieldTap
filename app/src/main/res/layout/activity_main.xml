@@ -269,6 +269,63 @@
 
         </LinearLayout>
 
+        <!-- Side Tab Position Row -->
+        <LinearLayout
+            android:id="@+id/rowSideTabPosition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_perm_row"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/side_tab_position"
+                android:textColor="#FFFFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvPosLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="40dp"
+                android:gravity="center"
+                android:paddingHorizontal="8dp"
+                android:text="@string/side_tab_left"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvPosRight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="40dp"
+                android:gravity="center"
+                android:paddingHorizontal="8dp"
+                android:text="@string/side_tab_right"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvPosHeight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="40dp"
+                android:gravity="center"
+                android:paddingHorizontal="8dp"
+                android:text="@string/side_tab_height"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
         <!-- Side Tab Size Row -->
         <LinearLayout
             android:id="@+id/rowSideTabSize"

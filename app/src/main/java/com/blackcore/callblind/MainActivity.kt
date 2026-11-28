@@ -50,7 +50,42 @@ class MainActivity : AppCompatActivity() {
 
         setupModeSelection()
         setupSideTabSize()
+        setupSideTabPosition()
         updateUI()
+    }
+
+    private fun setupSideTabPosition() {
+        val left = findViewById<TextView>(R.id.tvPosLeft)
+        val right = findViewById<TextView>(R.id.tvPosRight)
+        val height = findViewById<TextView>(R.id.tvPosHeight)
+        fun style(tv: TextView, selected: Boolean) {
+            tv.setTextColor(if (selected) 0xFF90CAF9.toInt() else 0x66FFFFFF)
+            tv.setTypeface(null, if (selected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        }
+        fun render() {
+            val onLeft = prefs.getBoolean("side_tab_left", false)
+            style(left, onLeft)
+            style(right, !onLeft)
+        }
+        fun choose(onLeft: Boolean) {
+            val svc = BlindAccessibilityService.instance
+            if (svc != null) svc.setSideTabLeft(onLeft)
+            else prefs.edit().putBoolean("side_tab_left", onLeft).apply()
+            render()
+        }
+        left.setOnClickListener { choose(true) }
+        right.setOnClickListener { choose(false) }
+        height.setTextColor(0xFF90CAF9.toInt())
+        height.setOnClickListener {
+            val svc = BlindAccessibilityService.instance
+            val msg = when {
+                svc == null -> R.string.move_need_service
+                !svc.startMove() -> R.string.move_unavailable
+                else -> R.string.move_start_toast
+            }
+            android.widget.Toast.makeText(this, getString(msg), android.widget.Toast.LENGTH_LONG).show()
+        }
+        render()
     }
 
     private fun setupSideTabSize() {
