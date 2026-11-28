@@ -36,8 +36,11 @@
 
     <string name="btn_on">ShieldTap 켜기</string>
     <string name="btn_off">닫기</string>
-    <string name="version_text">ShieldTap v1.0.4</string>
+    <string name="version_text">ShieldTap v1.0.5</string>
 
+    <string name="update_title">새 버전이 있어요</string>
+    <string name="update_body">Play 스토어에서 업데이트해 주세요.</string>
+    <string name="update_action">업데이트</string>
     <!-- Side Tab -->
     <string name="side_tab_position">사이드 탭 위치</string>
     <string name="side_tab_left">왼쪽</string>

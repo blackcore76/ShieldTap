@@ -369,6 +369,8 @@ class BlindAccessibilityService : AccessibilityService() {
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setTypeface(typeface, android.graphics.Typeface.BOLD)
             gravity = Gravity.CENTER
+            val pad = dpToPx(12f).toInt()
+            setPadding(dpToPx(6f).toInt(), pad, dpToPx(6f).toInt(), pad)
             background = GradientDrawable().apply {
                 setColor(0xE62979FF.toInt())
                 cornerRadius = dpToPx(12f)
@@ -376,8 +378,8 @@ class BlindAccessibilityService : AccessibilityService() {
             }
         }
         val params = WindowManager.LayoutParams(
-            dpToPx(88f).toInt(),
-            dpToPx(150f).toInt(),
+            dpToPx(96f).toInt(),
+            WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT

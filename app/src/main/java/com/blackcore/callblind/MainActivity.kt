@@ -148,6 +148,11 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateUI()
+        val banner = findViewById<View>(R.id.updateBanner)
+        banner.setOnClickListener { AppUpdate.openStore(this) }
+        AppUpdate.check(this) { newVersion ->
+            if (!isFinishing) banner.visibility = if (newVersion > 0) View.VISIBLE else View.GONE
+        }
     }
 
     private fun isAutoMode(): Boolean {
