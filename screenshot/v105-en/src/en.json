@@ -1,0 +1,7 @@
+[
+ {"n":1,"prefix":"en","img":"en_call.png","head":"No more cheek taps<br><em>during calls</em>","sub":"Auto-blocks touches when a call connects","off":120},
+ {"n":2,"prefix":"en","img":"en_tab.png","head":"Swipe to open,<br>tap to start","sub":"Just slide the side tab from the edge","off":120},
+ {"n":3,"prefix":"en","img":"en_lock.png","head":"Watching a video?<br><em>Lock touches only</em>","sub":"Screen stays visible, touches are blocked","off":80},
+ {"n":4,"prefix":"en","img":"en_main.png","head":"Turn it on once,<br>it works on its own","sub":"All features free · No internet permission","off":0},
+ {"n":5,"prefix":"en","img":"en_move.png","head":"Right where<br><em>your thumb reaches</em>","sub":"Left or right, height, and size — your way","off":200}
+]
